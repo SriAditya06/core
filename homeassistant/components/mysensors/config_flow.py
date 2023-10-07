@@ -161,36 +161,40 @@ class MySensorsConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         }
         return schema
 
-    async def validate_common(
-        self,
-        gw_type: ConfGatewayType,
-        errors: dict[str, str],
-        user_input: dict[str, Any],
-    ) -> dict[str, str]:
-        """Validate parameters common to all gateway types."""
-        errors.update(_validate_version(user_input[CONF_VERSION]))
+    async def _validate_gateway_address(gw_type, user_input):
+    verification_func = is_socket_address if gw_type == CONF_GATEWAY_TYPE_TCP else is_serial_port
+    try:
+        await asyncio.to_thread(verification_func, user_input[CONF_DEVICE])
+    except vol.Invalid:
+        return "invalid_ip" if gw_type == CONF_GATEWAY_TYPE_TCP else "invalid_serial"
+    return None
 
-        if gw_type != CONF_GATEWAY_TYPE_MQTT:
-            verification_func = is_socket_address if gw_type == CONF_GATEWAY_TYPE_TCP else is_serial_port
+async def _validate_connection(hass, gw_type, user_input):
+    if not await try_connect(hass, gw_type, user_input):
+        return "cannot_connect"
+    return None
 
-            try:
-                await self.hass.async_add_executor_job(
-                    verification_func, user_input[CONF_DEVICE]
-                )
-            except vol.Invalid:
-                errors[CONF_DEVICE] = "invalid_ip" if gw_type == CONF_GATEWAY_TYPE_TCP else "invalid_serial"
-        
-        persistence_file = user_input.get(CONF_PERSISTENCE_FILE)
-        if persistence_file:
-            self._validate_persistence_file(persistence_file, errors)
+async def validate_common(self, gw_type, errors, user_input):
+    """Validate parameters common to all gateway types."""
+    errors.update(_validate_version(user_input[CONF_VERSION]))
 
-        if not errors:
-            for other_entry in self._async_current_entries():
-                if _is_same_device(gw_type, user_input, other_entry):
-                    errors["base"] = "already_configured"
-                    break
+    if gw_type != CONF_GATEWAY_TYPE_MQTT:
+        address_error = await _validate_gateway_address(gw_type, user_input)
+        if address_error:
+            errors[CONF_DEVICE] = address_error
 
-        if not errors and not await try_connect(self.hass, gw_type, user_input):
-            errors["base"] = "cannot_connect"
+    persistence_file = user_input.get(CONF_PERSISTENCE_FILE)
+    if persistence_file:
+        self._validate_persistence_file(persistence_file, errors)
 
-        return errors
+    if not errors:
+        for other_entry in self._async_current_entries():
+            if _is_same_device(gw_type, user_input, other_entry):
+                errors["base"] = "already_configured"
+                break
+
+        connection_error = await _validate_connection(self.hass, gw_type, user_input)
+        if connection_error:
+            errors["base"] = connection_error
+
+    return errors
