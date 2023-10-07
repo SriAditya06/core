@@ -63,8 +63,6 @@ from .const import (
     WEBHOOK_DEACTIVATION,
     WEBHOOK_PUSH_TYPE,
 )
-from .data_handler import NetatmoDataHandler
-from .webhook import async_handle_webhook
 
 _LOGGER = logging.getLogger(__name__)
 
