@@ -92,7 +92,7 @@ async def async_get_config_entry_diagnostics(
 
 
 async def async_get_device_diagnostics(
-    hass: HomeAssistant, config_entry: ConfigEntry, device: dr.DeviceEntry
+    hass: HomeAssistant, device: dr.DeviceEntry
 ) -> dict[str, Any]:
     """Return diagnostics for a device."""
     zha_device: ZHADevice = async_get_zha_device(hass, device.id)

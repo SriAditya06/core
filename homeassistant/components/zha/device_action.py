@@ -131,7 +131,7 @@ async def async_call_action_from_config(
 
 
 async def async_validate_action_config(
-    hass: HomeAssistant, config: ConfigType
+     config: ConfigType
 ) -> ConfigType:
     """Validate config."""
     schema = ACTION_SCHEMA_MAP.get(config[CONF_TYPE], DEFAULT_ACTION_SCHEMA)

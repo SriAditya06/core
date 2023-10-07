@@ -166,7 +166,7 @@ class ZhaDoorLock(ZhaEntity, LockEntity):
             if state is not None:
                 self._state = VALUE_TO_STATE.get(state, self._state)
 
-    async def refresh(self, time):
+    async def refresh(self):
         """Call async_get_state at an interval."""
         await self.async_get_state(from_cache=False)
 

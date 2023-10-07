@@ -760,11 +760,6 @@ class ZHAGateway:
     def handle_message(
         self,
         sender: zigpy.device.Device,
-        profile: int,
-        cluster: int,
-        src_ep: int,
-        dst_ep: int,
-        message: bytes,
     ) -> None:
         """Handle message from a device Event handler."""
         if sender.ieee in self.devices and not self.devices[sender.ieee].available:
