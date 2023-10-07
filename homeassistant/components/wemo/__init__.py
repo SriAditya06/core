@@ -134,7 +134,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant) -> bool:
     """Unload a wemo config entry."""
     _LOGGER.debug("Unloading WeMo")
     wemo_data = async_wemo_data(hass)

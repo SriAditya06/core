@@ -7,7 +7,6 @@ import voluptuous as vol
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import bind_hass
 
 from . import commands, connection, const, decorators, http, messages  # noqa: F401
@@ -66,7 +65,7 @@ def async_register_command(
     handlers[command] = (handler, schema)
 
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+async def async_setup(hass: HomeAssistant) -> bool:
     """Initialize the websocket API."""
     hass.http.register_view(http.WebsocketAPIView())
     commands.async_register_commands(hass, async_register_command)

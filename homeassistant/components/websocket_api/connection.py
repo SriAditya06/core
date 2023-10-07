@@ -87,7 +87,7 @@ class ActiveConnection:
             description += " " + describe_request(request)
         return description
 
-    def context(self, msg: dict[str, Any]) -> Context:
+    def context(self) -> Context:
         """Return a context."""
         return Context(user_id=self.user.id)
 

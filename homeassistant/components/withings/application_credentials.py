@@ -16,7 +16,7 @@ from .const import DOMAIN
 
 
 async def async_get_auth_implementation(
-    hass: HomeAssistant, auth_domain: str, credential: ClientCredential
+    hass: HomeAssistant, credential: ClientCredential
 ) -> config_entry_oauth2_flow.AbstractOAuth2Implementation:
     """Return auth implementation."""
     return WithingsLocalOAuth2Implementation(

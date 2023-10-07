@@ -14,7 +14,7 @@ from homeassistant.const import CONF_MONITORED_CONDITIONS
 from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+from homeassistant.helpers.typing import ConfigType
 
 from . import DOMAIN as WIRELESSTAG_DOMAIN, WirelessTagBaseSensor
 
@@ -56,7 +56,6 @@ def setup_platform(
     hass: HomeAssistant,
     config: ConfigType,
     add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
     """Set up switches for a Wireless Sensor Tags."""
     platform = hass.data[WIRELESSTAG_DOMAIN]
