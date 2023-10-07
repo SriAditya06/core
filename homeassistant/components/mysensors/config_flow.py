@@ -3,26 +3,11 @@ from __future__ import annotations
 
 import os
 from typing import Any
-
-from awesomeversion import (
-    AwesomeVersion,
-    AwesomeVersionStrategy,
-    AwesomeVersionStrategyException,
-)
 import voluptuous as vol
-
-from homeassistant import config_entries
-from homeassistant.components.mqtt import (
-    DOMAIN as MQTT_DOMAIN,
-    valid_publish_topic,
-    valid_subscribe_topic,
-)
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import selector
-import homeassistant.helpers.config_validation as cv
-
+from homeassistant.helpers.config_validation import positive_int
 from .const import (
     CONF_BAUD_RATE,
     CONF_DEVICE,
@@ -54,71 +39,11 @@ _PORT_SELECTOR = vol.All(
     vol.Coerce(int),
 )
 
-
-def is_persistence_file(value: str) -> str:
+def validate_persistence_file(value: str) -> str:
     """Validate that persistence file path ends in either .pickle or .json."""
     if value.endswith((".json", ".pickle")):
         return value
-    raise vol.Invalid(f"{value} does not end in either `.json` or `.pickle`")
-
-
-def _get_schema_common(user_input: dict[str, str]) -> dict:
-    """Create a schema with options common to all gateway types."""
-    schema = {
-        vol.Required(
-            CONF_VERSION,
-            description={
-                "suggested_value": user_input.get(CONF_VERSION, DEFAULT_VERSION)
-            },
-        ): str,
-        vol.Optional(CONF_PERSISTENCE_FILE): str,
-    }
-    return schema
-
-
-def _validate_version(version: str) -> dict[str, str]:
-    """Validate a version string from the user."""
-    version_okay = True
-    try:
-        AwesomeVersion(
-            version,
-            ensure_strategy=[
-                AwesomeVersionStrategy.SIMPLEVER,
-                AwesomeVersionStrategy.SEMVER,
-            ],
-        )
-    except AwesomeVersionStrategyException:
-        version_okay = False
-
-    if version_okay:
-        return {}
-    return {CONF_VERSION: "invalid_version"}
-
-
-def _is_same_device(
-    gw_type: ConfGatewayType, user_input: dict[str, Any], entry: ConfigEntry
-) -> bool:
-    """Check if another ConfigDevice is actually the same as user_input.
-
-    This function only compares addresses and tcp ports, so it is possible to fool it with tricks like port forwarding.
-    """
-    if entry.data[CONF_DEVICE] != user_input[CONF_DEVICE]:
-        return False
-    if gw_type == CONF_GATEWAY_TYPE_TCP:
-        entry_tcp_port: int = entry.data[CONF_TCP_PORT]
-        input_tcp_port: int = user_input[CONF_TCP_PORT]
-        return entry_tcp_port == input_tcp_port
-    if gw_type == CONF_GATEWAY_TYPE_MQTT:
-        entry_topics = {
-            entry.data[CONF_TOPIC_IN_PREFIX],
-            entry.data[CONF_TOPIC_OUT_PREFIX],
-        }
-        return (
-            user_input.get(CONF_TOPIC_IN_PREFIX) in entry_topics
-            or user_input.get(CONF_TOPIC_OUT_PREFIX) in entry_topics
-        )
-    return True
-
+    raise vol.Invalid(f"Invalid file format. Please use `.json` or `.pickle`.")
 
 class MySensorsConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow."""
@@ -140,131 +65,101 @@ class MySensorsConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Create config entry for a serial gateway."""
-        gw_type = self._gw_type = CONF_GATEWAY_TYPE_SERIAL
-        errors: dict[str, str] = {}
-
-        if user_input is not None:
-            errors.update(await self.validate_common(gw_type, errors, user_input))
-            if not errors:
-                return self._async_create_entry(user_input)
-
-        user_input = user_input or {}
-        schema = {
-            vol.Required(
-                CONF_DEVICE, default=user_input.get(CONF_DEVICE, "/dev/ttyACM0")
-            ): str,
-            vol.Required(
-                CONF_BAUD_RATE,
-                default=user_input.get(CONF_BAUD_RATE, DEFAULT_BAUD_RATE),
-            ): cv.positive_int,
-        }
-        schema.update(_get_schema_common(user_input))
-
-        schema = vol.Schema(schema)
-        return self.async_show_form(
-            step_id="gw_serial", data_schema=schema, errors=errors
+        return await self._async_create_gateway_entry(
+            user_input, CONF_GATEWAY_TYPE_SERIAL, "gw_serial"
         )
 
     async def async_step_gw_tcp(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Create a config entry for a tcp gateway."""
-        gw_type = self._gw_type = CONF_GATEWAY_TYPE_TCP
-        errors: dict[str, str] = {}
-
-        if user_input is not None:
-            errors.update(await self.validate_common(gw_type, errors, user_input))
-            if not errors:
-                return self._async_create_entry(user_input)
-
-        user_input = user_input or {}
-        schema = {
-            vol.Required(
-                CONF_DEVICE, default=user_input.get(CONF_DEVICE, "127.0.0.1")
-            ): str,
-            vol.Optional(
-                CONF_TCP_PORT, default=user_input.get(CONF_TCP_PORT, DEFAULT_TCP_PORT)
-            ): _PORT_SELECTOR,
-        }
-        schema.update(_get_schema_common(user_input))
-
-        schema = vol.Schema(schema)
-        return self.async_show_form(step_id="gw_tcp", data_schema=schema, errors=errors)
-
-    def _check_topic_exists(self, topic: str) -> bool:
-        for other_config in self._async_current_entries():
-            if topic == other_config.data.get(
-                CONF_TOPIC_IN_PREFIX
-            ) or topic == other_config.data.get(CONF_TOPIC_OUT_PREFIX):
-                return True
-        return False
+        return await self._async_create_gateway_entry(
+            user_input, CONF_GATEWAY_TYPE_TCP, "gw_tcp"
+        )
 
     async def async_step_gw_mqtt(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Create a config entry for a mqtt gateway."""
-        # Naive check that doesn't consider config entry state.
-        if MQTT_DOMAIN not in self.hass.config.components:
+        if MQTT_COMPONENT not in self.hass.config.components:
             return self.async_abort(reason="mqtt_required")
+        
+        return await self._async_create_gateway_entry(
+            user_input, CONF_GATEWAY_TYPE_MQTT, "gw_mqtt"
+        )
 
-        gw_type = self._gw_type = CONF_GATEWAY_TYPE_MQTT
+    async def _async_create_gateway_entry(
+        self, user_input: dict[str, Any], gw_type: str, step_id: str
+    ) -> FlowResult:
+        """Create a config entry for a gateway."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            user_input[CONF_DEVICE] = MQTT_COMPONENT
-
-            try:
-                valid_subscribe_topic(user_input[CONF_TOPIC_IN_PREFIX])
-            except vol.Invalid:
-                errors[CONF_TOPIC_IN_PREFIX] = "invalid_subscribe_topic"
-            else:
-                if self._check_topic_exists(user_input[CONF_TOPIC_IN_PREFIX]):
-                    errors[CONF_TOPIC_IN_PREFIX] = "duplicate_topic"
-
-            try:
-                valid_publish_topic(user_input[CONF_TOPIC_OUT_PREFIX])
-            except vol.Invalid:
-                errors[CONF_TOPIC_OUT_PREFIX] = "invalid_publish_topic"
-            if not errors:
-                if (
-                    user_input[CONF_TOPIC_IN_PREFIX]
-                    == user_input[CONF_TOPIC_OUT_PREFIX]
-                ):
-                    errors[CONF_TOPIC_OUT_PREFIX] = "same_topic"
-                elif self._check_topic_exists(user_input[CONF_TOPIC_OUT_PREFIX]):
-                    errors[CONF_TOPIC_OUT_PREFIX] = "duplicate_topic"
-
+            self._validate_topic(user_input, errors, CONF_TOPIC_IN_PREFIX)
+            self._validate_topic(user_input, errors, CONF_TOPIC_OUT_PREFIX)
             errors.update(await self.validate_common(gw_type, errors, user_input))
             if not errors:
-                return self._async_create_entry(user_input)
+                return self._async_create_entry(user_input, gw_type)
 
         user_input = user_input or {}
-        schema = {
-            vol.Required(
-                CONF_TOPIC_IN_PREFIX, default=user_input.get(CONF_TOPIC_IN_PREFIX, "")
-            ): str,
-            vol.Required(
-                CONF_TOPIC_OUT_PREFIX, default=user_input.get(CONF_TOPIC_OUT_PREFIX, "")
-            ): str,
-            vol.Required(CONF_RETAIN, default=user_input.get(CONF_RETAIN, True)): bool,
-        }
-        schema.update(_get_schema_common(user_input))
+        schema = self._get_gateway_schema(user_input, gw_type)
+        return self.async_show_form(step_id=step_id, data_schema=schema, errors=errors)
 
-        schema = vol.Schema(schema)
-        return self.async_show_form(
-            step_id="gw_mqtt", data_schema=schema, errors=errors
-        )
+    def _validate_topic(self, user_input, errors, topic_key):
+        """Validate MQTT topic."""
+        try:
+            valid_subscribe_topic(user_input[topic_key])
+        except vol.Invalid:
+            errors[topic_key] = f"invalid_{topic_key}_topic"
+        else:
+            if self._check_topic_exists(user_input[topic_key]):
+                errors[topic_key] = f"duplicate_{topic_key}"
+
+    def _get_gateway_schema(self, user_input, gw_type):
+        """Create schema for a specific gateway type."""
+        base_schema = {
+            vol.Required(
+                CONF_DEVICE,
+                default=user_input.get(CONF_DEVICE, self._default_device(gw_type)),
+            ): str,
+            vol.Optional(CONF_BAUD_RATE, default=self._default_baud_rate(gw_type)): positive_int,
+        }
+        return vol.Schema(base_schema, **self._get_common_schema(user_input))
+
+    def _default_device(self, gw_type):
+        """Return default device based on gateway type."""
+        return "/dev/ttyACM0" if gw_type == CONF_GATEWAY_TYPE_SERIAL else "127.0.0.1"
+
+    def _default_baud_rate(self, gw_type):
+        """Return default baud rate based on gateway type."""
+        return DEFAULT_BAUD_RATE if gw_type == CONF_GATEWAY_TYPE_SERIAL else DEFAULT_TCP_PORT
+
+    def _check_topic_exists(self, topic: str) -> bool:
+        for other_config in self._async_current_entries():
+            if topic == other_config.data.get(CONF_TOPIC_IN_PREFIX) or topic == other_config.data.get(CONF_TOPIC_OUT_PREFIX):
+                return True
+        return False
 
     @callback
-    def _async_create_entry(self, user_input: dict[str, Any]) -> FlowResult:
+    def _async_create_entry(self, user_input: dict[str, Any], gw_type: str) -> FlowResult:
         """Create the config entry."""
         return self.async_create_entry(
             title=f"{user_input[CONF_DEVICE]}",
-            data={**user_input, CONF_GATEWAY_TYPE: self._gw_type},
+            data={**user_input, CONF_GATEWAY_TYPE: gw_type},
         )
 
-    def _normalize_persistence_file(self, path: str) -> str:
-        return os.path.realpath(os.path.normcase(self.hass.config.path(path)))
+    def _get_common_schema(self, user_input):
+        """Create a schema with options common to all gateway types."""
+        schema = {
+            vol.Required(
+                CONF_VERSION,
+                description={
+                    "suggested_value": user_input.get(CONF_VERSION, DEFAULT_VERSION)
+                },
+            ): str,
+            vol.Optional(CONF_PERSISTENCE_FILE, default=user_input.get(CONF_PERSISTENCE_FILE, "")): vol.All(str, validate_persistence_file),
+        }
+        return schema
 
     async def validate_common(
         self,
@@ -276,38 +171,18 @@ class MySensorsConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         errors.update(_validate_version(user_input[CONF_VERSION]))
 
         if gw_type != CONF_GATEWAY_TYPE_MQTT:
-            if gw_type == CONF_GATEWAY_TYPE_TCP:
-                verification_func = is_socket_address
-            else:
-                verification_func = is_serial_port
+            verification_func = is_socket_address if gw_type == CONF_GATEWAY_TYPE_TCP else is_serial_port
 
             try:
                 await self.hass.async_add_executor_job(
                     verification_func, user_input[CONF_DEVICE]
                 )
             except vol.Invalid:
-                errors[CONF_DEVICE] = (
-                    "invalid_ip"
-                    if gw_type == CONF_GATEWAY_TYPE_TCP
-                    else "invalid_serial"
-                )
-        if CONF_PERSISTENCE_FILE in user_input:
-            try:
-                is_persistence_file(user_input[CONF_PERSISTENCE_FILE])
-            except vol.Invalid:
-                errors[CONF_PERSISTENCE_FILE] = "invalid_persistence_file"
-            else:
-                real_persistence_path = user_input[
-                    CONF_PERSISTENCE_FILE
-                ] = self._normalize_persistence_file(user_input[CONF_PERSISTENCE_FILE])
-                for other_entry in self._async_current_entries():
-                    if CONF_PERSISTENCE_FILE not in other_entry.data:
-                        continue
-                    if real_persistence_path == self._normalize_persistence_file(
-                        other_entry.data[CONF_PERSISTENCE_FILE]
-                    ):
-                        errors[CONF_PERSISTENCE_FILE] = "duplicate_persistence_file"
-                        break
+                errors[CONF_DEVICE] = "invalid_ip" if gw_type == CONF_GATEWAY_TYPE_TCP else "invalid_serial"
+        
+        persistence_file = user_input.get(CONF_PERSISTENCE_FILE)
+        if persistence_file:
+            self._validate_persistence_file(persistence_file, errors)
 
         if not errors:
             for other_entry in self._async_current_entries():
@@ -315,7 +190,6 @@ class MySensorsConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     errors["base"] = "already_configured"
                     break
 
-        # if no errors so far, try to connect
         if not errors and not await try_connect(self.hass, gw_type, user_input):
             errors["base"] = "cannot_connect"
 
