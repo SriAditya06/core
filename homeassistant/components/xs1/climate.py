@@ -13,7 +13,6 @@ from homeassistant.components.climate import (
 from homeassistant.const import ATTR_TEMPERATURE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 from . import ACTUATORS, DOMAIN as COMPONENT_DOMAIN, SENSORS, XS1DeviceEntity
 
@@ -23,9 +22,7 @@ MAX_TEMP = 25
 
 def setup_platform(
     hass: HomeAssistant,
-    config: ConfigType,
     add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
     """Set up the XS1 thermostat platform."""
     actuators = hass.data[COMPONENT_DOMAIN][ACTUATORS]

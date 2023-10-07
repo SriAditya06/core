@@ -586,7 +586,7 @@ class ZDOClusterHandler(LogMixin):
     def permit_duration(self, duration):
         """Permit handler."""
 
-    async def async_initialize(self, from_cache):
+    async def async_initialize(self):
         """Initialize cluster handler."""
         self._status = ClusterHandlerStatus.INITIALIZED
 

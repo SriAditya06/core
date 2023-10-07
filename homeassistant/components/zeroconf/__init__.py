@@ -180,7 +180,7 @@ def _async_zc_has_functional_dual_stack() -> bool:
     )
 
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+async def async_setup(hass: HomeAssistant, ) -> bool:
     """Set up Zeroconf and make Home Assistant discoverable."""
     zc_args: dict = {"ip_version": IPVersion.V4Only}
 

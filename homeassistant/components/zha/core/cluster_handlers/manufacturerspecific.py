@@ -165,7 +165,7 @@ class OppleRemote(ClusterHandler):
                 "linkage_alarm": True,
             }
 
-    async def async_initialize_cluster_handler_specific(self, from_cache: bool) -> None:
+    async def async_initialize_cluster_handler_specific(self, ) -> None:
         """Initialize cluster handler specific."""
         if self.cluster.endpoint.model in ("lumi.motion.ac02", "lumi.motion.agl04"):
             interval = self.cluster.get("detection_interval", self.cluster.get(0x0102))

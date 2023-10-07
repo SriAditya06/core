@@ -7,7 +7,6 @@ from miio import AirQualityMonitor, AirQualityMonitorCGDN1, DeviceException
 from homeassistant.components.air_quality import AirQualityEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_MODEL, CONF_TOKEN
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
@@ -240,7 +239,6 @@ DEVICE_MAP: dict[str, dict[str, Callable]] = {
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:

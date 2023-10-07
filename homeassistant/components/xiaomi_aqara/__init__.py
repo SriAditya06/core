@@ -26,7 +26,6 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.device_registry import DeviceInfo, format_mac
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.event import async_track_point_in_utc_time
-from homeassistant.helpers.typing import ConfigType
 from homeassistant.util.dt import utcnow
 
 from .const import (
@@ -82,7 +81,7 @@ SERVICE_SCHEMA_REMOVE_DEVICE = vol.Schema(
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
-def setup(hass: HomeAssistant, config: ConfigType) -> bool:
+def setup(hass: HomeAssistant, ) -> bool:
     """Set up the Xiaomi component."""
 
     def play_ringtone_service(call: ServiceCall) -> None:

@@ -16,7 +16,6 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.debounce import Debouncer
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_track_time_interval
-from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
@@ -45,7 +44,7 @@ REQUEST_REFRESH_DELAY = 0.35
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
-async def async_setup(hass: HomeAssistant, hass_config: ConfigType) -> bool:
+async def async_setup(hass: HomeAssistant) -> bool:
     """Set up the wiz integration."""
 
     async def _async_discovery(*_: Any) -> None:

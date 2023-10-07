@@ -29,7 +29,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers import config_validation as cv, entity_platform
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+from homeassistant.helpers.typing import ConfigType
 from homeassistant.util.dt import utcnow
 
 from .const import SERVICE_LEARN, SERVICE_SET_REMOTE_LED_OFF, SERVICE_SET_REMOTE_LED_ON
@@ -69,7 +69,6 @@ async def async_setup_platform(
     hass: HomeAssistant,
     config: ConfigType,
     async_add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
     """Set up the Xiaomi IR Remote (Chuangmi IR) platform."""
     host = config[CONF_HOST]

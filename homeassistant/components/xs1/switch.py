@@ -8,16 +8,14 @@ from xs1_api_client.api_constants import ActuatorType
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+
 
 from . import ACTUATORS, DOMAIN as COMPONENT_DOMAIN, XS1DeviceEntity
 
 
 def setup_platform(
     hass: HomeAssistant,
-    config: ConfigType,
     add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
     """Set up the XS1 switch platform."""
     actuators = hass.data[COMPONENT_DOMAIN][ACTUATORS]

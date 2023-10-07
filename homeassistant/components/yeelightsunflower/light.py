@@ -27,10 +27,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({vol.Required(CONF_HOST): cv.string})
 
 
 def setup_platform(
-    hass: HomeAssistant,
     config: ConfigType,
     add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
     """Set up the Yeelight Sunflower Light platform."""
     host = config.get(CONF_HOST)

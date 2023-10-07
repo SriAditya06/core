@@ -325,7 +325,7 @@ class BaseZhaFlow(FlowHandler):
         )
 
     async def async_step_choose_formation_strategy(
-        self, user_input: dict[str, Any] | None = None
+        self, 
     ) -> FlowResult:
         """Choose how to deal with the current radio's settings."""
         await self._radio_mgr.async_load_network_settings()
@@ -368,7 +368,6 @@ class BaseZhaFlow(FlowHandler):
         )
 
     async def async_step_reuse_settings(
-        self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Reuse the existing network settings on the stick."""
         return await self._async_create_radio_entry()
@@ -381,7 +380,6 @@ class BaseZhaFlow(FlowHandler):
         return await self.async_step_form_new_network(user_input)
 
     async def async_step_form_new_network(
-        self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Form a brand-new network."""
         await self._radio_mgr.async_form_network()

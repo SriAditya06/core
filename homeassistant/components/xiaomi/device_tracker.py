@@ -13,7 +13,6 @@ from homeassistant.components.device_tracker import (
     DeviceScanner,
 )
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
-from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
@@ -28,7 +27,7 @@ PLATFORM_SCHEMA = PARENT_PLATFORM_SCHEMA.extend(
 )
 
 
-def get_scanner(hass: HomeAssistant, config: ConfigType) -> XiaomiDeviceScanner | None:
+def get_scanner( config: ConfigType) -> XiaomiDeviceScanner | None:
     """Validate the configuration and return a Xiaomi Device Scanner."""
     scanner = XiaomiDeviceScanner(config[DOMAIN])
 
