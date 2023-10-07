@@ -19,7 +19,11 @@ from homeassistant.components.vacuum import (
     VacuumEntityFeature,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ATTR_MODE, STATE_IDLE, STATE_PAUSED
+from homeassistant.const import (
+    ATTR_MODE,
+    STATE_IDLE,
+    STATE_PAUSED,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv, entity_platform
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -46,18 +50,11 @@ SCAN_INTERVAL = timedelta(minutes=SCAN_INTERVAL_MINUTES)
 ATTR_CLEAN_START = "clean_start"
 ATTR_CLEAN_STOP = "clean_stop"
 ATTR_CLEAN_AREA = "clean_area"
-ATTR_CLEAN_BATTERY_START = "battery_level_at_clean_start"
-ATTR_CLEAN_BATTERY_END = "battery_level_at_clean_end"
 ATTR_CLEAN_SUSP_COUNT = "clean_suspension_count"
 ATTR_CLEAN_SUSP_TIME = "clean_suspension_time"
 ATTR_CLEAN_PAUSE_TIME = "clean_pause_time"
 ATTR_CLEAN_ERROR_TIME = "clean_error_time"
 ATTR_LAUNCHED_FROM = "launched_from"
-
-ATTR_NAVIGATION = "navigation"
-ATTR_CATEGORY = "category"
-ATTR_ZONE = "zone"
-
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
@@ -90,7 +87,6 @@ async def async_setup_entry(
         "neato_custom_cleaning",
     )
 
-
 class NeatoConnectedVacuum(NeatoEntity, StateVacuumEntity):
     """Representation of a Neato Connected Vacuum."""
 
@@ -103,8 +99,6 @@ class NeatoConnectedVacuum(NeatoEntity, StateVacuumEntity):
         | VacuumEntityFeature.START
         | VacuumEntityFeature.CLEAN_SPOT
         | VacuumEntityFeature.STATE
-        | VacuumEntityFeature.MAP
-        | VacuumEntityFeature.LOCATE
     )
     _attr_name = None
 
@@ -128,8 +122,6 @@ class NeatoConnectedVacuum(NeatoEntity, StateVacuumEntity):
         self._clean_time_start: str | None = None
         self._clean_time_stop: str | None = None
         self._clean_area: float | None = None
-        self._clean_battery_start: int | None = None
-        self._clean_battery_end: int | None = None
         self._clean_susp_charge_count: int | None = None
         self._clean_susp_time: int | None = None
         self._clean_pause_time: int | None = None
@@ -220,8 +212,6 @@ class NeatoConnectedVacuum(NeatoEntity, StateVacuumEntity):
         self._clean_susp_time = mapdata["time_in_suspended_cleaning"]
         self._clean_pause_time = mapdata["time_in_pause"]
         self._clean_error_time = mapdata["time_in_error"]
-        self._clean_battery_start = mapdata["run_charge_at_start"]
-        self._clean_battery_end = mapdata["run_charge_at_end"]
         self._launched_from = mapdata["launched_from"]
 
         if (
@@ -281,10 +271,6 @@ class NeatoConnectedVacuum(NeatoEntity, StateVacuumEntity):
             data[ATTR_CLEAN_PAUSE_TIME] = self._clean_pause_time
         if self._clean_error_time is not None:
             data[ATTR_CLEAN_ERROR_TIME] = self._clean_error_time
-        if self._clean_battery_start is not None:
-            data[ATTR_CLEAN_BATTERY_START] = self._clean_battery_start
-        if self._clean_battery_end is not None:
-            data[ATTR_CLEAN_BATTERY_END] = self._clean_battery_end
         if self._launched_from is not None:
             data[ATTR_LAUNCHED_FROM] = self._launched_from
 
