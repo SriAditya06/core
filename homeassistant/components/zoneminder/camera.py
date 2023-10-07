@@ -18,9 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 def setup_platform(
     hass: HomeAssistant,
-    config: ConfigType,
     add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
     """Set up the ZoneMinder cameras."""
     filter_urllib3_logging()

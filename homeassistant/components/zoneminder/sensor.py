@@ -67,7 +67,6 @@ def setup_platform(
     hass: HomeAssistant,
     config: ConfigType,
     add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
     """Set up the ZoneMinder sensor platform."""
     include_archived = config[CONF_INCLUDE_ARCHIVED]

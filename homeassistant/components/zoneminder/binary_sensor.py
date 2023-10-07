@@ -16,9 +16,7 @@ from . import DOMAIN as ZONEMINDER_DOMAIN
 
 async def async_setup_platform(
     hass: HomeAssistant,
-    config: ConfigType,
     add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
     """Set up the ZoneMinder binary sensor platform."""
     sensors = []
