@@ -7,7 +7,6 @@ from typing import Any
 from aiovodafone import VodafoneStationApi, exceptions as aiovodafone_exceptions
 import voluptuous as vol
 
-from homeassistant import core
 from homeassistant.config_entries import ConfigEntry, ConfigFlow
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.data_entry_flow import FlowResult
@@ -31,7 +30,7 @@ STEP_REAUTH_DATA_SCHEMA = vol.Schema({vol.Required(CONF_PASSWORD): str})
 
 
 async def validate_input(
-    hass: core.HomeAssistant, data: dict[str, Any]
+ data: dict[str, Any]
 ) -> dict[str, str]:
     """Validate the user input allows us to connect."""
 
@@ -82,7 +81,7 @@ class VodafoneStationConfigFlow(ConfigFlow, domain=DOMAIN):
             step_id="user", data_schema=user_form_schema(user_input), errors=errors
         )
 
-    async def async_step_reauth(self, entry_data: Mapping[str, Any]) -> FlowResult:
+    async def async_step_reauth(self) -> FlowResult:
         """Handle reauth flow."""
         self.entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
         assert self.entry

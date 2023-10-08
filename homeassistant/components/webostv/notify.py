@@ -9,7 +9,7 @@ from aiowebostv import WebOsClient, WebOsTvPairError
 from homeassistant.components.notify import ATTR_DATA, BaseNotificationService
 from homeassistant.const import ATTR_ICON
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+from homeassistant.helpers.typing import DiscoveryInfoType
 
 from .const import ATTR_CONFIG_ENTRY_ID, DATA_CONFIG_ENTRY, DOMAIN, WEBOSTV_EXCEPTIONS
 
@@ -18,7 +18,6 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_get_service(
     hass: HomeAssistant,
-    config: ConfigType,
     discovery_info: DiscoveryInfoType | None = None,
 ) -> BaseNotificationService | None:
     """Return the notify service."""

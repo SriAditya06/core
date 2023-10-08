@@ -12,7 +12,6 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.restore_state import RestoreEntity
-from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
@@ -48,7 +47,7 @@ def async_get_wake_word_detection_entity(
     return component.get_entity(entity_id)
 
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+async def async_setup(hass: HomeAssistant) -> bool:
     """Set up STT."""
     component = hass.data[DOMAIN] = EntityComponent(_LOGGER, DOMAIN, hass)
     component.register_shutdown()

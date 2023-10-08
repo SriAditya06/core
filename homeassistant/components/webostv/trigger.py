@@ -30,7 +30,7 @@ def _get_trigger_platform(config: ConfigType) -> TriggerProtocol:
 
 
 async def async_validate_trigger_config(
-    hass: HomeAssistant, config: ConfigType
+    config: ConfigType
 ) -> ConfigType:
     """Validate config."""
     platform = _get_trigger_platform(config)

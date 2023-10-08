@@ -125,7 +125,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
 )
 
 
-def get_engine(hass, config, discovery_info=None):
+def get_engine(config):
     """Set up IBM Watson TTS component."""
 
     authenticator = IAMAuthenticator(config[CONF_APIKEY])

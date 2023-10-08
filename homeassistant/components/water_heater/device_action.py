@@ -16,7 +16,7 @@ from homeassistant.const import (
 from homeassistant.core import Context, HomeAssistant
 from homeassistant.helpers import entity_registry as er
 import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers.typing import ConfigType, TemplateVarsType
+from homeassistant.helpers.typing import ConfigType
 
 from . import DOMAIN
 
@@ -63,7 +63,6 @@ async def async_get_actions(
 async def async_call_action_from_config(
     hass: HomeAssistant,
     config: ConfigType,
-    variables: TemplateVarsType,
     context: Context | None,
 ) -> None:
     """Execute a device action."""

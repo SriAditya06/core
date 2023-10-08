@@ -18,7 +18,6 @@ from homeassistant.components.http.view import HomeAssistantView
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.network import get_url
-from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import bind_hass
 from homeassistant.util import network
 from homeassistant.util.aiohttp import MockRequest, MockStreamReader, serialize_response
@@ -188,7 +187,7 @@ async def async_handle_webhook(
         return Response(status=HTTPStatus.OK)
 
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+async def async_setup(hass: HomeAssistant) -> bool:
     """Initialize the webhook component."""
     hass.http.register_view(WebhookView)
     websocket_api.async_register_command(hass, websocket_list)

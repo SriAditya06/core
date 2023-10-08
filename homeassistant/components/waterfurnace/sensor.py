@@ -11,7 +11,7 @@ from homeassistant.const import PERCENTAGE, UnitOfPower, UnitOfTemperature
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+from homeassistant.helpers.typing import DiscoveryInfoType
 from homeassistant.util import slugify
 
 from . import DOMAIN as WF_DOMAIN, UPDATE_TOPIC, WaterFurnaceData
@@ -95,7 +95,6 @@ SENSORS = [
 
 def setup_platform(
     hass: HomeAssistant,
-    config: ConfigType,
     add_entities: AddEntitiesCallback,
     discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
