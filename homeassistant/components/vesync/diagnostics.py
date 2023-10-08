@@ -6,10 +6,8 @@ from typing import Any
 from pyvesync import VeSync
 
 from homeassistant.components.diagnostics import REDACTED
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers.device_registry import DeviceEntry
 
 from .common import VeSyncBaseDevice
 from .const import DOMAIN, VS_MANAGER
@@ -18,7 +16,7 @@ KEYS_TO_REDACT = {"manager", "uuid", "mac_id"}
 
 
 async def async_get_config_entry_diagnostics(
-    hass: HomeAssistant, entry: ConfigEntry
+    hass: HomeAssistant
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
     manager: VeSync = hass.data[DOMAIN][VS_MANAGER]
@@ -43,7 +41,7 @@ async def async_get_config_entry_diagnostics(
 
 
 async def async_get_device_diagnostics(
-    hass: HomeAssistant, entry: ConfigEntry, device: DeviceEntry
+    hass: HomeAssistant
 ) -> dict[str, Any]:
     """Return diagnostics for a device entry."""
     manager: VeSync = hass.data[DOMAIN][VS_MANAGER]
